@@ -2,39 +2,41 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Image } from 'react-native';
 import { signInWithEmailAndPassword } from '@firebase/auth';
 import { auth } from '../../firebaseConfig.js'; // Adjust the import according to your setup
+import { ShowToast } from '../components/Toast.js'; // Import the ShowToast function
 
-const SignInScreen = ({ setUser, setErrorMessage }) => {
+const SignInScreen = ({ setUser }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleSignIn = async () => {
-    setErrorMessage(''); // Clear error message before attempting sign-in
+    ShowToast('info', 'Processing your sign-in...'); // Optional: Show a message indicating that the process is ongoing
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      console.log('User signed in successfully!');
-      // Set user state or handle post-sign-in actions here
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      setUser(userCredential.user); // Set user state in parent component
+      ShowToast('success', 'User signed in successfully!');
     } catch (error) {
+      let errorMessage;
       switch (error.code) {
         case 'auth/user-not-found':
-          setErrorMessage('User not found. Please sign up.');
+          ShowToast('error', 'User not found. Please sign up.');
           break;
         case 'auth/wrong-password':
-          setErrorMessage('Incorrect password. Please try again.');
+          ShowToast('error','Incorrect password. Please try again.')
           break;
         case 'auth/invalid-email':
-          setErrorMessage('Invalid email address. Please enter a valid email.');
+          ShowToast('error','Invalid email address. Please enter a valid email.')
           break;
         default:
-          setErrorMessage('User not found. Please sign up.');
+          ShowToast('error','Invalid Credentials')
       }
+      ShowToast('error','Invalid Credentials')
     }
   };
 
   return (
     <View style={styles.container}>
-      {/* <Text style={styles.title}>Sign In</Text> */}
       <View style={styles.imageContainer}>
-        <Image source={require('../../assets/car.png')} style={styles.carImage} />
+        <Image source={require('../../assets/7.jpg')} style={styles.carImage} />
       </View>
       <View style={styles.formContainer}>
         <Text style={styles.label}>Email</Text>
@@ -43,7 +45,7 @@ const SignInScreen = ({ setUser, setErrorMessage }) => {
           value={email}
           onChangeText={(text) => {
             setEmail(text);
-            setErrorMessage(''); // Clear error message on input change
+            // Clear the error message when input changes (if needed)
           }}
           placeholder="Enter your email"
           autoCapitalize="none"
@@ -54,12 +56,12 @@ const SignInScreen = ({ setUser, setErrorMessage }) => {
           value={password}
           onChangeText={(text) => {
             setPassword(text);
-            setErrorMessage(''); // Clear error message on input change
+            // Clear the error message when input changes (if needed)
           }}
           placeholder="Enter your password"
           secureTextEntry
         />
-        <Button title="Sign In" onPress={handleSignIn} color="#3498db" />
+        <Button title="Sign In" onPress={handleSignIn} color="#2ecc71" />
       </View>
     </View>
   );
@@ -75,18 +77,13 @@ const styles = StyleSheet.create({
     elevation: 3,
     marginBottom: 16,
     alignItems: 'center', // Center items horizontally
-    marginTop:80,
-  },
-  title: {
-    fontSize: 24,
-    marginBottom: 16,
-    textAlign: 'center',
+    marginTop: 75,
   },
   imageContainer: {
     width: '110%', // Ensure image container spans the full width of the sign-in container
     alignItems: 'center',
     marginBottom: 30,
-    marginTop: 0 // Add space between the image and the form
+    marginTop: 0, // Add space between the image and the form
   },
   carImage: {
     width: '93%', // Make car image occupy full width of the container

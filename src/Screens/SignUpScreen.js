@@ -1,39 +1,42 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Image } from 'react-native';
 import { createUserWithEmailAndPassword } from '@firebase/auth';
-import { auth } from '../../firebaseConfig.js'; // Adjust the import according to your setup
+import { auth } from '../../firebaseConfig.js'; // Adjust according to your setup
+import { ShowToast } from '../components/Toast.js';
 
-const SignUpScreen = ({ setUser, setErrorMessage }) => {
+const SignUpScreen = ({ setErrorMessage, setIsSignedUp }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleSignUp = async () => {
-    setErrorMessage(''); // Clear error message before attempting sign-up
+    ShowToast('info', 'Processing your sign-up...'); // Optional: Show a message indicating that the process is ongoing
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-      console.log('User created successfully!');
-      // Set user state or handle post-sign-up actions here
+      ShowToast('success', 'Signup successful! Please log in.');
+      setIsSignedUp(true);
     } catch (error) {
+      let errorMessage;
       switch (error.code) {
         case 'auth/email-already-in-use':
-          setErrorMessage('Email already in use. Please use a different email.');
+          errorMessage = 'Email already in use. Please use a different email.';
           break;
         case 'auth/invalid-email':
-          setErrorMessage('Invalid email address.');
+          errorMessage = 'Invalid email address.';
           break;
         case 'auth/weak-password':
-          setErrorMessage('The password must contain at least 6 characters.');
+          errorMessage = 'The password must contain at least 6 characters.';
           break;
         default:
-          setErrorMessage('Sign Up error: ' + error.message);
+          errorMessage = 'Sign Up error: ' + error.message;
       }
+      ShowToast('error', errorMessage);
     }
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}>
-        <Image source={require('../../assets/car.png')} style={styles.carImage} />
+        <Image source={require('../../assets/6.jpg')} style={styles.carImage} />
       </View>
       <View style={styles.formContainer}>
         <Text style={styles.label}>Email</Text>
@@ -42,7 +45,7 @@ const SignUpScreen = ({ setUser, setErrorMessage }) => {
           value={email}
           onChangeText={(text) => {
             setEmail(text);
-            setErrorMessage(''); // Clear error message on input change
+            setErrorMessage('');
           }}
           placeholder="Enter your email"
           autoCapitalize="none"
@@ -53,12 +56,12 @@ const SignUpScreen = ({ setUser, setErrorMessage }) => {
           value={password}
           onChangeText={(text) => {
             setPassword(text);
-            setErrorMessage(''); // Clear error message on input change
+            setErrorMessage('');
           }}
           placeholder="Enter your password"
           secureTextEntry
         />
-        <Button title="Sign Up" onPress={handleSignUp} color="#2ecc71" />
+        <Button title="Sign Up" onPress={handleSignUp} color="#3498db" />
       </View>
     </View>
   );
@@ -73,11 +76,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     elevation: 3,
     marginBottom: 16,
-    marginTop: 80,
+    marginTop: 75,
     alignItems: 'center', // Center items horizontally
   },
   imageContainer: {
-    width: '110%', // Ensure image container spans the full width of the sign-in container
+    width: '120%', // Ensure image container spans the full width of the sign-in container
     alignItems: 'center',
     marginBottom: 30,
     marginTop: 0, // Add space between the image and the form
